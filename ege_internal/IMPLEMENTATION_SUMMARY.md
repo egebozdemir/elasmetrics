@@ -419,7 +419,7 @@ For questions or issues:
 
 ## Documentation
 
-- **[README.md](README.md)** - Main documentation
+- **[README.md](../README.md)** - Main documentation
 - **[ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md)** - Environment configuration (detailed)
 - **[AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md)** - Airflow integration (comprehensive)
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick reference guide

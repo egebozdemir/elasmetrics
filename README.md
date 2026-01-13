@@ -22,7 +22,7 @@ metrics:
 ✅ **Custom metrics for plugins**  
 ✅ **Different metrics per environment**  
 
-See [METRICS_GUIDE.md](METRICS_GUIDE.md) for details.
+See [METRICS_GUIDE.md](ege_internal/METRICS_GUIDE.md) for details.
 
 ## 🎯 Features
 
@@ -198,7 +198,7 @@ python airflow_runner.py \
     --env PRODUCTION
 ```
 
-For detailed Airflow integration, see [AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md)
+For detailed Airflow integration, see [AIRFLOW_INTEGRATION.md](ege_internal/AIRFLOW_INTEGRATION.md)
 
 ## 🔧 Configuration Details
 
@@ -360,7 +360,7 @@ metrics:
 - ✅ **Custom metrics** for plugins or special needs
 - ✅ **Different metrics per environment**
 
-For detailed guide, see [METRICS_GUIDE.md](METRICS_GUIDE.md)
+For detailed guide, see [METRICS_GUIDE.md](ege_internal/METRICS_GUIDE.md)
 
 ## 📊 Data Model
 
@@ -477,7 +477,7 @@ dag = DAG('elasticsearch_metrics', schedule_interval='0 2 * * *', ...)
 task = PythonOperator(task_id='collect', python_callable=collect_metrics, dag=dag)
 ```
 
-See [AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md) for detailed guide.
+See [AIRFLOW_INTEGRATION.md](ege_internal/AIRFLOW_INTEGRATION.md) for detailed guide.
 
 ## 📈 Grafana Integration
 
@@ -593,7 +593,7 @@ grep ERROR logs/elastic_metrics.log
   ```
 - **Secret management**: Consider using AWS Secrets Manager, HashiCorp Vault, or similar for production
 
-See [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md) for security best practices.
+See [ENVIRONMENT_SETUP.md](ege_internal/ENVIRONMENT_SETUP.md) for security best practices.
 
 ## 📝 Development
 
@@ -669,13 +669,13 @@ Contact the Data Engineering team for questions.
 ## 📚 Documentation
 
 - **[README.md](README.md)** - Main documentation (you are here)
-- **[SETUP.md](SETUP.md)** - Detailed installation and setup guide
-- **[METRICS_GUIDE.md](METRICS_GUIDE.md)** - **NEW!** Generic metrics system guide
-- **[ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md)** - Environment configuration guide
-- **[AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md)** - Apache Airflow integration guide
-- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick reference for common tasks
-- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Project overview and architecture
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
+- **[SETUP.md](ege_internal/SETUP.md)** - Detailed installation and setup guide
+- **[METRICS_GUIDE.md](ege_internal/METRICS_GUIDE.md)** - **NEW!** Generic metrics system guide
+- **[ENVIRONMENT_SETUP.md](ege_internal/ENVIRONMENT_SETUP.md)** - Environment configuration guide
+- **[AIRFLOW_INTEGRATION.md](ege_internal/AIRFLOW_INTEGRATION.md)** - Apache Airflow integration guide
+- **[QUICK_REFERENCE.md](ege_internal/QUICK_REFERENCE.md)** - Quick reference for common tasks
+- **[PROJECT_SUMMARY.md](ege_internal/PROJECT_SUMMARY.md)** - Project overview and architecture
+- **[CHANGELOG.md](ege_internal/CHANGELOG.md)** - Version history and changes
 
 ## 🔄 Version History
 

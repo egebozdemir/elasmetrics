@@ -432,6 +432,6 @@ See the `examples/` directory for:
 ## Further Reading
 
 - [AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md) - Airflow integration guide
-- [README.md](README.md) - Main documentation
+- [README.md](../README.md) - Main documentation
 - [SETUP.md](SETUP.md) - Setup and installation guide
 
