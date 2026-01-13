@@ -326,7 +326,7 @@ LOG_LEVEL=DEBUG python main.py collect --env STAGING
 
 ## Documentation
 
-- [README.md](README.md) - Main documentation
+- [README.md](../README.md) - Main documentation
 - [SETUP.md](SETUP.md) - Installation and setup
 - [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md) - Detailed environment configuration
 - [AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md) - Airflow integration guide
