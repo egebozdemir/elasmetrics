@@ -62,8 +62,9 @@ class IndexMetrics:
         if isinstance(data.get('timestamp'), datetime):
             data['timestamp'] = data['timestamp'].isoformat()
         
-        # Remove None values for optional fields
-        return {k: v for k, v in data.items() if v is not None}
+        # Keep all fields (including None) for consistent SQL inserts
+        # Database will handle NULL values properly
+        return data
     
     @classmethod
     def from_es_response(cls, index_name: str, stats: Dict[str, Any]) -> 'IndexMetrics':
@@ -111,6 +112,30 @@ class IndexMetrics:
         Returns:
             IndexMetrics instance
         """
+        # When using bytes=b parameter, sizes are returned as integers directly
+        store_size_raw = cat_data.get('store.size')
+        pri_store_size_raw = cat_data.get('pri.store.size')
+        
+        # Handle both string (with units) and integer/numeric (bytes) formats
+        # Elasticsearch may return int or string representation of int
+        if store_size_raw is not None and (isinstance(store_size_raw, (int, float)) or str(store_size_raw).isdigit()):
+            # Elasticsearch returned bytes as number
+            store_size_bytes = int(store_size_raw) if store_size_raw else None
+            store_size_human = cls._format_bytes(store_size_bytes)
+        else:
+            # Elasticsearch returned string like "1.5mb"
+            store_size_bytes = cls._parse_size_to_bytes(store_size_raw)
+            store_size_human = store_size_raw
+        
+        if pri_store_size_raw is not None and (isinstance(pri_store_size_raw, (int, float)) or str(pri_store_size_raw).isdigit()):
+            # Elasticsearch returned bytes as number
+            pri_store_size_bytes = int(pri_store_size_raw) if pri_store_size_raw else None
+            pri_store_size_human = cls._format_bytes(pri_store_size_bytes)
+        else:
+            # Elasticsearch returned string like "1.5mb"
+            pri_store_size_bytes = cls._parse_size_to_bytes(pri_store_size_raw)
+            pri_store_size_human = pri_store_size_raw
+        
         return cls(
             index_name=cat_data.get('index', ''),
             status=cat_data.get('status'),
@@ -119,11 +144,12 @@ class IndexMetrics:
             replicas=cls._safe_int(cat_data.get('rep')),
             docs_count=cls._safe_int(cat_data.get('docs.count')),
             docs_deleted=cls._safe_int(cat_data.get('docs.deleted')),
-            store_size_bytes=cls._parse_size_to_bytes(cat_data.get('store.size')),
-            pri_store_size_bytes=cls._parse_size_to_bytes(cat_data.get('pri.store.size')),
-            store_size_human=cat_data.get('store.size'),
-            pri_store_size_human=cat_data.get('pri.store.size'),
+            store_size_bytes=store_size_bytes,
+            pri_store_size_bytes=pri_store_size_bytes,
+            store_size_human=store_size_human,
+            pri_store_size_human=pri_store_size_human,
             uuid=cat_data.get('uuid'),
+            creation_date=cat_data.get('creation.date.string'),
         )
     
     @staticmethod
