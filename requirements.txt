@@ -3,6 +3,7 @@ elasticsearch>=8.11.0,<9.0.0
 
 # MySQL connector
 PyMySQL>=1.1.0
+cryptography>=41.0.0  # Required for MySQL 8.0+ authentication
 
 # Configuration management
 PyYAML>=6.0
