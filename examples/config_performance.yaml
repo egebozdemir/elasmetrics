@@ -1,0 +1,76 @@
+# Performance-focused configuration
+# Collects metrics related to search and indexing performance
+
+elasticsearch:
+  hosts:
+    - "http://localhost:9200"
+  timeout: 60
+
+mysql:
+  host: "localhost"
+  database: "elasticsearch_metrics"
+  user: "root"
+  password: "changeme"
+
+metrics:
+  # Performance metrics focus
+  collect:
+    # Document counts for context
+    - docs.count
+    
+    # Indexing performance
+    - indexing.index_total
+    - indexing.index_time_in_millis
+    - indexing.delete_total
+    - indexing.delete_time_in_millis
+    
+    # Search performance
+    - search.query_total
+    - search.query_time_in_millis
+    - search.fetch_total
+    - search.fetch_time_in_millis
+    
+    # Merge performance (affects indexing)
+    - merges.total
+    - merges.total_time_in_millis
+    - merges.total_docs
+    
+    # Segment health (affects search performance)
+    - segments.count
+    - segments.memory_in_bytes
+    
+    # Cache effectiveness
+    - request_cache.memory_size_in_bytes
+    - request_cache.hit_count
+    - request_cache.miss_count
+    - query_cache.memory_size_in_bytes
+    - query_cache.hit_count
+    - query_cache.miss_count
+    - fielddata.memory_size_in_bytes
+  
+  # Custom performance metrics
+  custom_definitions:
+    - name: search.avg_query_time
+      es_path: primaries.search.query_time_in_millis
+      type: float
+      description: Average query execution time
+      unit: milliseconds
+    
+    - name: indexing.avg_index_time
+      es_path: primaries.indexing.index_time_in_millis
+      type: float
+      description: Average indexing time
+      unit: milliseconds
+  
+  exclude_patterns:
+    - ".security*"
+    - ".kibana*"
+  
+  batch_size: 50
+  collector_type: generic
+
+logging:
+  level: "INFO"
+  file: "logs/performance_metrics.log"
+  console: true
+

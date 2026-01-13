@@ -1,0 +1,62 @@
+# Elasticsearch Configuration
+elasticsearch:
+  hosts:
+    - "http://localhost:9200"
+  # username: "elastic"
+  # password: "changeme"
+  # api_key: "your_api_key"
+  timeout: 30
+  verify_certs: false
+
+# MySQL Configuration
+mysql:
+  host: "localhost"
+  port: 3306
+  database: "elasticsearch_metrics"
+  user: "root"
+  password: "changeme"
+  charset: "utf8mb4"
+  pool_size: 5
+  pool_recycle: 3600
+
+# Metrics Configuration
+metrics:
+  # Which metrics to collect from index stats
+  index_stats:
+    - docs.count
+    - docs.deleted
+    - store.size_in_bytes
+    - pri.store.size_in_bytes
+    - creation.date.string
+    - store.size.human
+    - pri.store.size.human
+  
+  # Index patterns to include (empty = all indices)
+  include_patterns:
+    - "*"
+  
+  # Index patterns to exclude
+  exclude_patterns:
+    - ".security*"
+    - ".kibana*"
+    - ".monitoring*"
+    - ".watcher*"
+    - ".ml*"
+  
+  # Batch size for processing
+  batch_size: 100
+
+# Scheduling Configuration
+scheduling:
+  enabled: false
+  # Cron expression for daily collection at 2 AM
+  cron: "0 2 * * *"
+  timezone: "Europe/Istanbul"
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/elastic_metrics.log"
+  console: true
+

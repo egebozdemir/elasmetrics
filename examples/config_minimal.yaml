@@ -1,0 +1,30 @@
+# Minimal configuration - collect only essential metrics
+# Good starting point for new deployments
+
+elasticsearch:
+  hosts:
+    - "http://localhost:9200"
+  timeout: 30
+
+mysql:
+  host: "localhost"
+  database: "elasticsearch_metrics"
+  user: "root"
+  password: "changeme"
+
+metrics:
+  # Minimal set of metrics
+  collect:
+    - docs.count
+    - store.size_in_bytes
+  
+  exclude_patterns:
+    - ".*"  # Exclude all system indices
+  
+  batch_size: 100
+  collector_type: generic
+
+logging:
+  level: "INFO"
+  console: true
+

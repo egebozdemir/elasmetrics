@@ -1,0 +1,125 @@
+# Example configuration using Generic Metrics System
+# This shows how to collect any metrics from Elasticsearch without code changes
+
+# Elasticsearch Configuration
+elasticsearch:
+  hosts:
+    - "http://localhost:9200"
+  username: "elastic"
+  password: "changeme"
+  timeout: 30
+  verify_certs: false
+
+# MySQL Configuration
+mysql:
+  host: "localhost"
+  port: 3306
+  database: "elasticsearch_metrics"
+  user: "root"
+  password: "changeme"
+  charset: "utf8mb4"
+  pool_size: 5
+  pool_recycle: 3600
+
+# Generic Metrics Configuration
+metrics:
+  # Specify which metrics to collect
+  # These can be any pre-registered metrics or custom metrics defined below
+  collect:
+    # Document metrics
+    - docs.count
+    - docs.deleted
+    
+    # Storage metrics
+    - store.size_in_bytes
+    - pri.store.size_in_bytes
+    
+    # Performance metrics (indexing)
+    - indexing.index_total
+    - indexing.index_time_in_millis
+    
+    # Performance metrics (search)
+    - search.query_total
+    - search.query_time_in_millis
+    
+    # Segment metrics
+    - segments.count
+    - segments.memory_in_bytes
+    
+    # Merge metrics
+    - merges.total
+    - merges.total_time_in_millis
+    
+    # Cache metrics
+    - request_cache.memory_size_in_bytes
+    - fielddata.memory_size_in_bytes
+    - query_cache.memory_size_in_bytes
+    
+    # Other metrics
+    - refresh.total
+    - flush.total
+    - translog.size_in_bytes
+  
+  # Define custom metrics (optional)
+  # Add metrics specific to your Elasticsearch plugins or custom needs
+  custom_definitions:
+    # Example: Custom business metric
+    - name: business.order_count
+      es_path: primaries.business_metrics.order_count
+      type: integer
+      description: Number of orders in this index
+      unit: count
+      aggregatable: true
+    
+    # Example: Custom plugin metric
+    - name: ml.anomaly_score
+      es_path: primaries.ml.anomaly_detection.score
+      type: float
+      description: ML anomaly detection score
+      unit: score
+      aggregatable: true
+    
+    # Example: Calculated metric
+    - name: indexing.avg_time_per_doc
+      es_path: primaries.indexing.index_time_in_millis
+      type: float
+      description: Average indexing time per document
+      unit: milliseconds
+      aggregatable: true
+  
+  # Index patterns to include (empty = all indices)
+  include_patterns:
+    - "*"
+    # - "logs-*"
+    # - "metrics-*"
+  
+  # Index patterns to exclude
+  exclude_patterns:
+    - ".security*"
+    - ".kibana*"
+    - ".monitoring*"
+    - ".watcher*"
+    - ".ml*"
+    - ".tasks*"
+  
+  # Batch size for processing
+  batch_size: 100
+  
+  # Collection method: 'generic' or 'legacy'
+  # generic: Uses new flexible system
+  # legacy: Uses old IndexStatsCollector (backward compatibility)
+  collector_type: generic
+
+# Scheduling Configuration
+scheduling:
+  enabled: false
+  cron: "0 2 * * *"
+  timezone: "Europe/Istanbul"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/elastic_metrics.log"
+  console: true
+

@@ -1,0 +1,57 @@
+# Example Configuration File
+# Copy this to config.yaml and customize
+
+elasticsearch:
+  hosts:
+    - "http://localhost:9200"
+    # - "http://es-node-2:9200"  # Multiple hosts
+  
+  # Authentication (uncomment if needed)
+  # username: "elastic"
+  # password: "changeme"
+  # api_key: "your_api_key"
+  
+  timeout: 30
+  verify_certs: false
+
+mysql:
+  host: "localhost"
+  port: 3306
+  database: "elasticsearch_metrics"
+  user: "root"
+  password: "CHANGE_ME"
+  charset: "utf8mb4"
+  pool_size: 5
+  pool_recycle: 3600
+
+metrics:
+  # Metrics to collect
+  index_stats:
+    - docs.count
+    - docs.deleted
+    - store.size_in_bytes
+    - pri.store.size_in_bytes
+    - creation.date.string
+    - store.size.human
+    - pri.store.size.human
+  
+  # Include patterns (empty = all)
+  include_patterns:
+    - "*"
+  
+  # Exclude patterns
+  exclude_patterns:
+    - ".security*"
+    - ".kibana*"
+    - ".monitoring*"
+    - ".watcher*"
+    - ".ml*"
+  
+  # Batch size
+  batch_size: 100
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/elastic_metrics.log"
+  console: true
