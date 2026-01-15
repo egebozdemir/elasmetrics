@@ -1,29 +1,32 @@
 # 📚 Documentation Index
 
-Complete documentation for the ElasMetrics project.
+Complete documentation for ElasMetrics - organized by use case.
 
 ---
 
-## 🚀 **Getting Started**
+## 🚀 **Getting Started** (Start Here!)
 
-| Document | Description |
-|----------|-------------|
-| **[QUICKSTART.md](QUICKSTART.md)** | ⚡ Quick 5-minute setup guide |
-| **[SETUP.md](SETUP.md)** | 📋 Complete installation and setup |
-| **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** | 📊 Project overview and architecture |
+| Document | Description | When to Use |
+|----------|-------------|-------------|
+| **[QUICKSTART.md](QUICKSTART.md)** | ⚡ 5-minute setup guide | First time setup |
+| **[DOCKER_SETUP.md](DOCKER_SETUP.md)** | 🐳 Local testing environment | Local development & testing |
 
-**Start here if you're new!**
+**→ New to the project?** Start with [QUICKSTART.md](QUICKSTART.md)
 
 ---
 
-## 🐳 **Docker & Local Setup**
+## 📊 **Core Features**
 
+### Metrics Collection
 | Document | Description |
 |----------|-------------|
-| **[DOCKER_SETUP.md](DOCKER_SETUP.md)** | 🐳 Docker Compose setup for ES & MySQL |
-| **[SYNTHETIC_DATA_BREAKDOWN.md](SYNTHETIC_DATA_BREAKDOWN.md)** | 📊 Detailed breakdown of test data (23K docs, 7 indices) |
+| **[METRICS_GUIDE.md](METRICS_GUIDE.md)** | 📈 Complete metrics system guide<br/>17+ pre-registered metrics, custom metrics, type safety |
 
-**For local development and testing**
+### Data Querying
+| Document | Description |
+|----------|-------------|
+| **[QUERY_GUIDE.md](QUERY_GUIDE.md)** | 🔍 50+ SQL query examples<br/>Time-series, current state, trends, growth analysis |
+| **[ES_QUERY_GUIDE.md](ES_QUERY_GUIDE.md)** | 🔎 Elasticsearch query examples<br/>Direct ES queries, aggregations, search |
 
 ---
 
@@ -31,175 +34,113 @@ Complete documentation for the ElasMetrics project.
 
 | Document | Description |
 |----------|-------------|
-| **[ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md)** | 🔧 Environment variables and `.env` files |
-| **[PARAMETER_STORE_GUIDE.md](PARAMETER_STORE_GUIDE.md)** | 🔐 AWS Parameter Store integration (detailed) |
-| **[PARAMETER_STORE_SUMMARY.md](PARAMETER_STORE_SUMMARY.md)** | 🔐 AWS Parameter Store quick reference |
-
-**For managing credentials and environment-specific configs**
+| **[ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md)** | 🔧 Multi-environment configuration<br/>.env files, staging/production setup |
+| **[PARAMETER_STORE_GUIDE.md](PARAMETER_STORE_GUIDE.md)** | 🔐 AWS Parameter Store integration<br/>Secure credential management |
 
 ---
 
-## 📊 **Metrics & Data Collection**
+## 🔗 **Integration**
 
 | Document | Description |
 |----------|-------------|
-| **[METRICS_GUIDE.md](METRICS_GUIDE.md)** | 📈 Complete guide to metrics collection system |
-| **[METRICS_SUMMARY.md](METRICS_SUMMARY.md)** | 📈 Quick metrics reference |
-| **[QUERY_GUIDE.md](QUERY_GUIDE.md)** | 🔍 50+ SQL queries for analysis |
-| **[TIME_SERIES_SETUP.md](TIME_SERIES_SETUP.md)** | ⏱️ Time-series architecture explained |
-
-**For understanding how metrics are collected and queried**
+| **[AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md)** | ✈️ Apache Airflow DAG integration<br/>Production scheduling, monitoring |
 
 ---
 
-## 🔍 **Elasticsearch Queries**
+## 📖 **Reference**
 
 | Document | Description |
 |----------|-------------|
-| **[ES_QUERY_GUIDE.md](ES_QUERY_GUIDE.md)** | 🔎 Elasticsearch query examples and tools |
-
-**For querying Elasticsearch directly**
+| **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** | ⚡ Command cheat sheet<br/>Quick lookup for common commands |
 
 ---
 
-## ✈️ **Airflow Integration**
+## 🎯 **I want to...**
 
-| Document | Description |
-|----------|-------------|
-| **[AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md)** | ✈️ Apache Airflow DAG integration guide |
+### **Set up the project**
+→ [QUICKSTART.md](QUICKSTART.md) (5 minutes)  
+→ [DOCKER_SETUP.md](DOCKER_SETUP.md) (local testing)
 
-**For running metrics collection as Airflow DAGs**
+### **Configure for production**
+→ [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md) (multi-environment)  
+→ [PARAMETER_STORE_GUIDE.md](PARAMETER_STORE_GUIDE.md) (secure credentials)
 
----
+### **Understand metrics**
+→ [METRICS_GUIDE.md](METRICS_GUIDE.md) (complete guide)  
+→ Add metrics without code changes!
 
-## 📖 **Reference & Implementation**
+### **Query the data**
+→ [QUERY_GUIDE.md](QUERY_GUIDE.md) (SQL queries)  
+→ [ES_QUERY_GUIDE.md](ES_QUERY_GUIDE.md) (Elasticsearch)
 
-| Document | Description |
-|----------|-------------|
-| **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** | ⚡ Quick command reference |
-| **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** | 🏗️ Implementation details and patterns |
-| **[README_IMPLEMENTATION.md](README_IMPLEMENTATION.md)** | 📝 Detailed implementation notes |
-| **[CHANGELOG.md](CHANGELOG.md)** | 📋 Version history and changes |
+### **Deploy to Airflow**
+→ [AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md) (DAG integration)
 
-**For developers and contributors**
-
----
-
-## 🎯 **Documentation by Use Case**
-
-### **I want to...**
-
-#### **Set up the project locally**
-1. [QUICKSTART.md](QUICKSTART.md) - Fast 5-minute setup
-2. [DOCKER_SETUP.md](DOCKER_SETUP.md) - Docker environment
-3. [SYNTHETIC_DATA_BREAKDOWN.md](SYNTHETIC_DATA_BREAKDOWN.md) - Test data
-
-#### **Understand the metrics system**
-1. [METRICS_SUMMARY.md](METRICS_SUMMARY.md) - Quick overview
-2. [METRICS_GUIDE.md](METRICS_GUIDE.md) - Complete guide
-3. [TIME_SERIES_SETUP.md](TIME_SERIES_SETUP.md) - Architecture
-
-#### **Query and analyze data**
-1. [QUERY_GUIDE.md](QUERY_GUIDE.md) - 50+ SQL queries
-2. [ES_QUERY_GUIDE.md](ES_QUERY_GUIDE.md) - Elasticsearch queries
-3. [TIME_SERIES_SETUP.md](TIME_SERIES_SETUP.md) - Time-series patterns
-
-#### **Deploy to production**
-1. [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md) - Environment config
-2. [PARAMETER_STORE_GUIDE.md](PARAMETER_STORE_GUIDE.md) - Secure credentials
-3. [AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md) - Airflow DAGs
-
-#### **Understand the codebase**
-1. [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - Architecture overview
-2. [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Design patterns
-3. [README_IMPLEMENTATION.md](README_IMPLEMENTATION.md) - Implementation details
+### **Quick commands**
+→ [QUICK_REFERENCE.md](QUICK_REFERENCE.md) (cheat sheet)
 
 ---
 
-## 📂 **Document Categories**
+## 📂 **Complete File List** (10 Documents)
 
-### **Setup & Installation** (Getting Started)
-- QUICKSTART.md
-- SETUP.md
-- DOCKER_SETUP.md
-- ENVIRONMENT_SETUP.md
+### Essential (Read These First)
+1. **QUICKSTART.md** - Get started in 5 minutes
+2. **METRICS_GUIDE.md** - How to collect metrics
+3. **QUERY_GUIDE.md** - How to use the data
 
-### **Configuration** (How to Configure)
-- ENVIRONMENT_SETUP.md
-- PARAMETER_STORE_GUIDE.md
-- PARAMETER_STORE_SUMMARY.md
+### Setup & Configuration
+4. **DOCKER_SETUP.md** - Local testing environment
+5. **ENVIRONMENT_SETUP.md** - Multi-environment setup
+6. **PARAMETER_STORE_GUIDE.md** - AWS credentials
 
-### **Metrics & Queries** (How to Use)
-- METRICS_GUIDE.md
-- METRICS_SUMMARY.md
-- QUERY_GUIDE.md
-- TIME_SERIES_SETUP.md
-- ES_QUERY_GUIDE.md
-
-### **Integration** (How to Integrate)
-- AIRFLOW_INTEGRATION.md
-
-### **Reference** (Look Up Info)
-- QUICK_REFERENCE.md
-- PROJECT_SUMMARY.md
-- IMPLEMENTATION_SUMMARY.md
-- README_IMPLEMENTATION.md
-- CHANGELOG.md
-
-### **Test Data**
-- SYNTHETIC_DATA_BREAKDOWN.md
+### Integration & Reference
+7. **AIRFLOW_INTEGRATION.md** - Production scheduling
+8. **QUICK_REFERENCE.md** - Command reference
+9. **ES_QUERY_GUIDE.md** - Elasticsearch queries
+10. **INDEX.md** - This navigation guide
 
 ---
 
 ## 🔗 **External Links**
 
-- **Main README:** [`../README.md`](../README.md)
-- **Scripts:** [`../scripts/README.md`](../scripts/README.md)
-- **Examples:** [`../examples/`](../examples/)
+- **Main README:** [`../README.md`](../README.md) - Project overview
+- **Scripts:** [`../scripts/README.md`](../scripts/README.md) - Utility scripts
+- **Examples:** [`../examples/`](../examples/) - Configuration examples
 
 ---
 
 ## 📏 **Documentation Standards**
 
-All documentation follows these standards:
-
-- ✅ **Format:** Markdown (.md)
-- ✅ **Headers:** Consistent structure with emojis
-- ✅ **Code blocks:** Properly formatted with language tags
-- ✅ **Examples:** Real, runnable examples
-- ✅ **Links:** Cross-referenced where appropriate
+- ✅ **Concise** - Essential information only
+- ✅ **Markdown** - Easy to read and maintain
+- ✅ **Examples** - Real, runnable code
+- ✅ **Cross-referenced** - Links between related docs
 
 ---
 
-## 🔄 **Keeping Documentation Updated**
+## 💡 **Quick Navigation**
 
-When making changes:
+```bash
+# View documentation
+cat docs/QUICKSTART.md       # Start here
+cat docs/METRICS_GUIDE.md    # Understand metrics
+cat docs/QUERY_GUIDE.md      # Query examples
 
-1. Update relevant docs
-2. Check cross-references
-3. Update this index if adding new docs
-4. Update CHANGELOG.md with version changes
+# View main README
+cat README.md
+
+# View scripts
+cat scripts/README.md
+ls scripts/
+```
 
 ---
 
 ## 📊 **Documentation Stats**
 
-- **Total Documents:** 18
-- **Total Lines:** ~10,000+
+- **Total Documents:** 10 (streamlined!)
 - **Formats:** 100% Markdown (.md)
-- **Code Examples:** 200+
+- **Code Examples:** 100+
 - **Query Examples:** 50+
 
----
-
-## 💡 **Quick Navigation Tips**
-
-- Use Ctrl+F (Cmd+F) to search within documents
-- Follow the "I want to..." section above for task-oriented navigation
-- Check QUICK_REFERENCE.md for command cheat sheet
-- See PROJECT_SUMMARY.md for architecture overview
-
----
-
-**Need help?** Start with [QUICKSTART.md](QUICKSTART.md) or [QUICK_REFERENCE.md](QUICK_REFERENCE.md)!
-
+**Everything you need, nothing you don't.** 🎯

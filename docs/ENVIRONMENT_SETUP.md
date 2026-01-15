@@ -433,5 +433,6 @@ See the `examples/` directory for:
 
 - [AIRFLOW_INTEGRATION.md](AIRFLOW_INTEGRATION.md) - Airflow integration guide
 - [README.md](../README.md) - Main documentation
-- [SETUP.md](SETUP.md) - Setup and installation guide
+- [QUICKSTART.md](QUICKSTART.md) - Quick setup guide
+- [INDEX.md](INDEX.md) - Complete documentation index
 
