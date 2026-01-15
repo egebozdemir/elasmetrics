@@ -151,12 +151,39 @@ After Elasticsearch is running:
 ./scripts/docker-populate-sample-data.sh
 ```
 
-This creates several test indices with sample data:
-- `logs-app-2024.01.*` - Application logs
-- `metrics-system-2024.01` - System metrics
-- `events-user-actions` - User events
-- `products-catalog` - Product data
-- `orders-2024-q1` - Order data
+### Test Data Created
+
+**Total: ~23,000 documents across 7 indices**
+
+| Index | Documents | Size | Use Case |
+|-------|-----------|------|----------|
+| `events-user-actions` | 10,000 | ~833 KB | High-volume event tracking |
+| `orders-2024-q1` | 3,000 | ~272 KB | E-commerce order data |
+| `.ds-logs-app-2024.01.03` | 2,000 | ~332 KB | Data stream - recent logs |
+| `.ds-logs-app-2024.01.02` | 1,500 | ~244 KB | Data stream - mid logs |
+| `.ds-logs-app-2024.01.01` | 1,000 | ~167 KB | Data stream - early logs |
+| `products-catalog` | 500 | ~92 KB | Product master data |
+| `.ds-metrics-system-2024.01` | 0 | 249 B | System metrics (empty index) |
+
+**Features:**
+- ✅ Data streams (`.ds-*` prefix)
+- ✅ Standard indices
+- ✅ Different health states (green/yellow)
+- ✅ Realistic document structures
+- ✅ Various shard configurations
+
+### Inspect Data
+
+```bash
+# Quick overview
+./scripts/inspect-data.sh
+
+# ES queries (Python)
+python scripts/showcase_es_queries.py
+
+# ES queries (Bash)
+./scripts/showcase-es-queries.sh
+```
 
 ---
 
