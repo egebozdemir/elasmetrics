@@ -37,8 +37,6 @@ class MySQLRepository:
         replicas INT,
         creation_date VARCHAR(50),
         uuid VARCHAR(255),
-        growth_2m DECIMAL(20, 2),
-        growth_2m_sku VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_index_name (index_name),
         INDEX idx_timestamp (timestamp),
@@ -47,19 +45,32 @@ class MySQLRepository:
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     """
     
+    # Create VIEW for latest metrics (fast current state queries)
+    CREATE_LATEST_VIEW_SQL = """
+    CREATE OR REPLACE VIEW index_metrics_latest AS
+    SELECT im.*
+    FROM index_metrics im
+    INNER JOIN (
+        SELECT index_name, MAX(timestamp) as max_timestamp
+        FROM index_metrics
+        GROUP BY index_name
+    ) latest ON im.index_name = latest.index_name 
+              AND im.timestamp = latest.max_timestamp
+    """
+    
     INSERT_METRIC_SQL = """
     INSERT INTO index_metrics (
         index_name, timestamp, docs_count, docs_deleted,
         store_size_bytes, pri_store_size_bytes,
         store_size_human, pri_store_size_human,
         status, health, pri_shards, replicas,
-        creation_date, uuid, growth_2m, growth_2m_sku
+        creation_date, uuid
     ) VALUES (
         %(index_name)s, %(timestamp)s, %(docs_count)s, %(docs_deleted)s,
         %(store_size_bytes)s, %(pri_store_size_bytes)s,
         %(store_size_human)s, %(pri_store_size_human)s,
         %(status)s, %(health)s, %(pri_shards)s, %(replicas)s,
-        %(creation_date)s, %(uuid)s, %(growth_2m)s, %(growth_2m_sku)s
+        %(creation_date)s, %(uuid)s
     )
     """
     
@@ -143,13 +154,20 @@ class MySQLRepository:
     def _ensure_table_exists(self):
         """
         Ensure the metrics table exists, create if it doesn't.
+        Also creates the 'latest' view for fast current-state queries.
         """
         try:
             with self._get_connection() as conn:
                 with conn.cursor() as cursor:
+                    # Create main table
                     cursor.execute(self.CREATE_TABLE_SQL)
-                    conn.commit()
                     self.logger.info("Table 'index_metrics' is ready")
+                    
+                    # Create view for latest metrics (fast current-state queries)
+                    cursor.execute(self.CREATE_LATEST_VIEW_SQL)
+                    self.logger.info("View 'index_metrics_latest' is ready")
+                    
+                    conn.commit()
         except Exception as e:
             self.logger.error(f"Failed to ensure table exists: {e}")
             raise
@@ -217,13 +235,13 @@ class MySQLRepository:
     
     def get_latest_metrics(self, limit: int = 100) -> List[Dict[str, Any]]:
         """
-        Get latest metrics from database.
+        Get latest metrics from database (most recent collection runs).
         
         Args:
             limit: Maximum number of records to return
             
         Returns:
-            List of metric dictionaries
+            List of metric dictionaries ordered by timestamp
         """
         try:
             with self._get_connection() as conn:
@@ -238,6 +256,34 @@ class MySQLRepository:
                     return results
         except Exception as e:
             self.logger.error(f"Failed to get latest metrics: {e}")
+            raise
+    
+    def get_current_state(self) -> List[Dict[str, Any]]:
+        """
+        Get current state of all indices (latest metrics per index).
+        Uses the index_metrics_latest VIEW for optimal performance.
+        
+        This is perfect for:
+        - Current cluster overview dashboards
+        - Real-time monitoring
+        - Alerting on current values
+        - Quick status checks
+        
+        Returns:
+            List of latest metrics (one per index)
+        """
+        try:
+            with self._get_connection() as conn:
+                with conn.cursor() as cursor:
+                    sql = """
+                    SELECT * FROM index_metrics_latest
+                    ORDER BY index_name
+                    """
+                    cursor.execute(sql)
+                    results = cursor.fetchall()
+                    return results
+        except Exception as e:
+            self.logger.error(f"Failed to get current state: {e}")
             raise
     
     def get_metrics_by_index(

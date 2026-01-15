@@ -20,7 +20,7 @@ Created a template-based environment configuration system:
 **How to use:**
 ```bash
 # Run the setup script
-./setup_env.sh
+./scripts/setup_env.sh
 
 # Or manually
 cp .env.template .env
@@ -141,7 +141,7 @@ Created detailed documentation:
 Created `setup_env.sh` for easy environment setup:
 
 ```bash
-./setup_env.sh
+./scripts/setup_env.sh
 # Interactive menu to create .env files
 ```
 
@@ -378,7 +378,7 @@ print(f"MySQL: {config.get('mysql')}")
 
 1. **Create Environment Files**
    ```bash
-   ./setup_env.sh
+   ./scripts/setup_env.sh
    ```
 
 2. **Configure Each Environment**

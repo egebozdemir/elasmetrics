@@ -28,6 +28,7 @@ See [METRICS_GUIDE.md](docs/METRICS_GUIDE.md) for details.
 
 - **Universal Metrics Collection**: Generic metrics system - collect ANY Elasticsearch metric without code changes
 - **Type-Safe**: Built-in type validation for metrics (integer, float, string, boolean, timestamp, JSON)
+- **AWS Parameter Store Integration**: Secure credential management with environment-based parameters
 - **Flexible Configuration**: YAML, JSON, and environment-based configuration with multi-environment support
 - **Airflow Integration**: Native support for Apache Airflow DAGs with JSON configuration
 - **Environment Management**: Separate configurations for staging, production, and local development
@@ -118,7 +119,7 @@ Create environment-specific configuration files:
 
 ```bash
 # Run the setup script
-./setup_env.sh
+./scripts/setup_env.sh
 
 # Or manually create from template
 cp .env.template .env          # For local development
