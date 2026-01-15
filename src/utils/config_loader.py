@@ -4,6 +4,7 @@ Configuration loader utility for loading and validating application configuratio
 import os
 import json
 import yaml
+import logging
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 from .env_loader import EnvLoader
@@ -14,9 +15,11 @@ class ConfigLoader:
     Singleton class for loading and managing application configuration.
     Implements Singleton pattern to ensure single configuration instance.
     Supports both YAML-based config and environment variable overrides.
+    Integrates with AWS Parameter Store for secure credential management.
     """
     _instance = None
     _config: Dict[str, Any] = None
+    _logger = logging.getLogger(__name__)
     
     def __new__(cls):
         if cls._instance is None:
@@ -134,7 +137,17 @@ class ConfigLoader:
                 raise ValueError(f"Missing required MySQL field: {field}")
     
     def _apply_env_overrides(self):
-        """Apply environment variable overrides to configuration."""
+        """
+        Apply environment variable overrides to configuration.
+        Supports AWS Parameter Store integration for secure credential management.
+        """
+        # Check if we should use Parameter Store
+        use_parameter_store = os.getenv('USE_PARAMETER_STORE', 'false').lower() == 'true'
+        local_dev_mode = os.getenv('LOCAL_DEV_MODE', 'false').lower() == 'true'
+        
+        if use_parameter_store and not local_dev_mode:
+            self._load_from_parameter_store()
+        
         # Elasticsearch overrides
         if os.getenv('ES_HOSTS'):
             self._config['elasticsearch']['hosts'] = os.getenv('ES_HOSTS').split(',')
@@ -241,6 +254,90 @@ class ConfigLoader:
         if self._config is None:
             self.load_config()
         return self._config
+    
+    def _load_from_parameter_store(self):
+        """
+        Load credentials from AWS Parameter Store.
+        Uses environment-specific paths based on ENV variable.
+        """
+        try:
+            from ..services.parameter_store_service import ParameterStoreService
+            
+            env = os.getenv('ENV', 'STAGING').upper()
+            param_prefix = os.getenv('PARAMETER_STORE_PREFIX', '/ELASMETRICS')
+            
+            self._logger.info(f"Loading configuration from Parameter Store (ENV={env})")
+            
+            # Load Elasticsearch credentials
+            try:
+                es_password = ParameterStoreService.get_parameter(
+                    f"{param_prefix}/{env}/ELASTICSEARCH/PASSWORD"
+                )
+                self._config['elasticsearch']['password'] = es_password
+                self._logger.info("Loaded Elasticsearch password from Parameter Store")
+            except RuntimeError as e:
+                self._logger.warning(f"Could not load ES password from Parameter Store: {e}")
+            
+            try:
+                es_username = ParameterStoreService.get_parameter(
+                    f"{param_prefix}/{env}/ELASTICSEARCH/USERNAME",
+                    default=None
+                )
+                if es_username:
+                    self._config['elasticsearch']['username'] = es_username
+                    self._logger.info("Loaded Elasticsearch username from Parameter Store")
+            except RuntimeError as e:
+                self._logger.warning(f"Could not load ES username from Parameter Store: {e}")
+            
+            try:
+                es_api_key = ParameterStoreService.get_parameter(
+                    f"{param_prefix}/{env}/ELASTICSEARCH/API_KEY",
+                    default=None
+                )
+                if es_api_key:
+                    self._config['elasticsearch']['api_key'] = es_api_key
+                    self._logger.info("Loaded Elasticsearch API key from Parameter Store")
+            except RuntimeError as e:
+                self._logger.warning(f"Could not load ES API key from Parameter Store: {e}")
+            
+            # Load MySQL credentials
+            try:
+                mysql_password = ParameterStoreService.get_parameter(
+                    f"{param_prefix}/{env}/MYSQL/PASSWORD"
+                )
+                self._config['mysql']['password'] = mysql_password
+                self._logger.info("Loaded MySQL password from Parameter Store")
+            except RuntimeError as e:
+                self._logger.warning(f"Could not load MySQL password from Parameter Store: {e}")
+            
+            try:
+                mysql_user = ParameterStoreService.get_parameter(
+                    f"{param_prefix}/{env}/MYSQL/USER",
+                    default=None
+                )
+                if mysql_user:
+                    self._config['mysql']['user'] = mysql_user
+                    self._logger.info("Loaded MySQL username from Parameter Store")
+            except RuntimeError as e:
+                self._logger.warning(f"Could not load MySQL username from Parameter Store: {e}")
+            
+            try:
+                mysql_host = ParameterStoreService.get_parameter(
+                    f"{param_prefix}/{env}/MYSQL/HOST",
+                    default=None
+                )
+                if mysql_host:
+                    self._config['mysql']['host'] = mysql_host
+                    self._logger.info("Loaded MySQL host from Parameter Store")
+            except RuntimeError as e:
+                self._logger.warning(f"Could not load MySQL host from Parameter Store: {e}")
+                
+        except ImportError:
+            self._logger.error("boto3 not installed. Install with: pip install boto3")
+            raise RuntimeError("boto3 required for Parameter Store integration")
+        except Exception as e:
+            self._logger.error(f"Failed to load configuration from Parameter Store: {e}")
+            self._logger.warning("Falling back to environment variables or config file values")
     
     @classmethod
     def reset(cls):

@@ -35,10 +35,6 @@ class IndexMetrics:
     # Additional metadata
     uuid: Optional[str] = None
     
-    # Calculated fields
-    growth_2m: Optional[float] = None
-    growth_2m_sku: Optional[str] = None
-    
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert metrics to dictionary.

@@ -15,7 +15,7 @@ docker-compose -f docker-compose-es-only.yml up -d
 
 ### Step 2: Setup your local MySQL
 ```bash
-./setup-mysql-local.sh
+./scripts/setup-mysql-local.sh
 ```
 
 ### Step 3: Configure elasmetrics
@@ -148,7 +148,7 @@ docker-compose down -v
 After Elasticsearch is running:
 
 ```bash
-./docker-populate-sample-data.sh
+./scripts/docker-populate-sample-data.sh
 ```
 
 This creates several test indices with sample data:
@@ -220,8 +220,8 @@ For development/testing with existing Homebrew MySQL:
 ```bash
 # Quick start
 docker-compose -f docker-compose-es-only.yml up -d
-./setup-mysql-local.sh
-./docker-populate-sample-data.sh
+./scripts/setup-mysql-local.sh
+./scripts/docker-populate-sample-data.sh
 python main.py health-check
 python main.py collect
 ```

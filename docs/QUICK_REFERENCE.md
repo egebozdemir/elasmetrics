@@ -6,7 +6,7 @@
 
 ```bash
 # 1. Create environment files
-./setup_env.sh
+./scripts/setup_env.sh
 
 # 2. Edit with your credentials
 vi .env                  # For local dev

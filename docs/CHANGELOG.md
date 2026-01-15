@@ -157,7 +157,7 @@ For existing installations:
 
 1. **Create environment files**:
    ```bash
-   ./setup_env.sh
+   ./scripts/setup_env.sh
    ```
 
 2. **Update deployment scripts**:
