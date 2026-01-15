@@ -76,9 +76,9 @@ Collect output:
 
 ## 📊 Next Steps
 
-1. **Grafana Dashboard**: `README.md` > Grafana Integration
-2. **Cron Job Setup**: `SETUP.md` > Automated Execution
-3. **Alert System**: Based on criteria in Google Sheet
+1. **Grafana Dashboard**: See `README.md` > Grafana queries
+2. **Scheduling**: See `AIRFLOW_INTEGRATION.md` for production scheduling
+3. **Queries**: See `QUERY_GUIDE.md` for analysis examples
 
 ## 🆘 Having Issues?
 
@@ -110,8 +110,8 @@ pip install --upgrade -r requirements.txt
 
 ## 📞 Help
 
-- Detailed documentation: `README.md`
-- Installation guide: `SETUP.md`
-- Project summary: `PROJECT_SUMMARY.md`
+- Main documentation: [README.md](../README.md)
+- All docs index: [INDEX.md](INDEX.md)
+- Environment setup: [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md)
 - Log file: `logs/elastic_metrics.log`
 

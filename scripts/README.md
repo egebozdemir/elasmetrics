@@ -276,10 +276,10 @@ chmod +x scripts/*.py
 |--------|----------------------|
 | `manage_parameters.py` | `docs/PARAMETER_STORE_GUIDE.md` |
 | `airflow_runner.py` | `docs/AIRFLOW_INTEGRATION.md` |
-| `test_queries.py` | `docs/QUERY_GUIDE.md`, `docs/TIME_SERIES_SETUP.md` |
+| `test_queries.py` | `docs/QUERY_GUIDE.md` |
 | `showcase_es_queries.py` | `docs/ES_QUERY_GUIDE.md` |
 | `docker-*.sh` | `docs/DOCKER_SETUP.md` |
-| `setup-mysql-local.sh` | `docs/SETUP.md` |
+| `setup-mysql-local.sh` | `docs/DOCKER_SETUP.md` |
 
 ---
 
@@ -320,7 +320,7 @@ docker ps
 - **Project Documentation:** `docs/` directory
 - **Main README:** `README.md`
 - **Quick Start:** `docs/QUICKSTART.md`
-- **Setup Guide:** `docs/SETUP.md`
+- **Complete Index:** `docs/INDEX.md`
 
 ---
 

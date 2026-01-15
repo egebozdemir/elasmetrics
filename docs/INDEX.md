@@ -9,8 +9,7 @@ Complete documentation for ElasMetrics - organized by use case.
 | Document | Description | When to Use |
 |----------|-------------|-------------|
 | **[QUICKSTART.md](QUICKSTART.md)** | ⚡ 5-minute setup guide | First time setup |
-| **[SETUP.md](SETUP.md)** | 📋 Detailed installation | Production deployment |
-| **[DOCKER_SETUP.md](DOCKER_SETUP.md)** | 🐳 Local testing environment | Local development |
+| **[DOCKER_SETUP.md](DOCKER_SETUP.md)** | 🐳 Local testing environment | Local development & testing |
 
 **→ New to the project?** Start with [QUICKSTART.md](QUICKSTART.md)
 
@@ -60,8 +59,7 @@ Complete documentation for ElasMetrics - organized by use case.
 
 ### **Set up the project**
 → [QUICKSTART.md](QUICKSTART.md) (5 minutes)  
-→ [DOCKER_SETUP.md](DOCKER_SETUP.md) (local testing)  
-→ [SETUP.md](SETUP.md) (production)
+→ [DOCKER_SETUP.md](DOCKER_SETUP.md) (local testing)
 
 ### **Configure for production**
 → [ENVIRONMENT_SETUP.md](ENVIRONMENT_SETUP.md) (multi-environment)  
@@ -83,7 +81,7 @@ Complete documentation for ElasMetrics - organized by use case.
 
 ---
 
-## 📂 **Complete File List** (9 Documents)
+## 📂 **Complete File List** (10 Documents)
 
 ### Essential (Read These First)
 1. **QUICKSTART.md** - Get started in 5 minutes
@@ -91,15 +89,15 @@ Complete documentation for ElasMetrics - organized by use case.
 3. **QUERY_GUIDE.md** - How to use the data
 
 ### Setup & Configuration
-4. **SETUP.md** - Detailed installation
-5. **DOCKER_SETUP.md** - Local testing
-6. **ENVIRONMENT_SETUP.md** - Multi-environment
-7. **PARAMETER_STORE_GUIDE.md** - AWS credentials
+4. **DOCKER_SETUP.md** - Local testing environment
+5. **ENVIRONMENT_SETUP.md** - Multi-environment setup
+6. **PARAMETER_STORE_GUIDE.md** - AWS credentials
 
 ### Integration & Reference
-8. **AIRFLOW_INTEGRATION.md** - Production scheduling
-9. **QUICK_REFERENCE.md** - Command reference
-10. **ES_QUERY_GUIDE.md** - Elasticsearch queries
+7. **AIRFLOW_INTEGRATION.md** - Production scheduling
+8. **QUICK_REFERENCE.md** - Command reference
+9. **ES_QUERY_GUIDE.md** - Elasticsearch queries
+10. **INDEX.md** - This navigation guide
 
 ---
 
