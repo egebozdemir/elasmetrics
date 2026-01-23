@@ -3,6 +3,7 @@ Collector for Elasticsearch index statistics.
 """
 from typing import List, Dict, Any
 from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import UnsupportedProductError
 
 from .base_collector import BaseCollector
 from ..models import IndexMetrics
@@ -74,6 +75,7 @@ class IndexStatsCollector(BaseCollector):
     def _collect_batch_metrics(self, indices: List[str]) -> List[IndexMetrics]:
         """
         Collect metrics for a batch of indices using _cat/indices API.
+        Compatible with AWS OpenSearch.
         
         Args:
             indices: List of index names
@@ -83,20 +85,20 @@ class IndexStatsCollector(BaseCollector):
         """
         metrics_list = []
         
+        # Define which fields we want from _cat/indices
+        headers = [
+            'index', 'health', 'status', 'uuid',
+            'pri', 'rep',
+            'docs.count', 'docs.deleted',
+            'store.size', 'pri.store.size',
+            'creation.date.string'
+        ]
+        
+        # Get metrics for all indices in batch at once
+        # Using comma-separated index names is more efficient
+        index_pattern = ','.join(indices)
+        
         try:
-            # Define which fields we want from _cat/indices
-            headers = [
-                'index', 'health', 'status', 'uuid',
-                'pri', 'rep',
-                'docs.count', 'docs.deleted',
-                'store.size', 'pri.store.size',
-                'creation.date.string'
-            ]
-            
-            # Get metrics for all indices in batch at once
-            # Using comma-separated index names is more efficient
-            index_pattern = ','.join(indices)
-            
             response = self.es_client.cat.indices(
                 index=index_pattern,
                 format='json',
@@ -114,7 +116,41 @@ class IndexStatsCollector(BaseCollector):
                         f"Failed to parse metrics for index {item.get('index', 'unknown')}: {e}"
                     )
                     continue
-            
+                    
+        except UnsupportedProductError as e:
+            # AWS OpenSearch detected - use raw transport
+            self.logger.warning(f"AWS OpenSearch detected in batch collection, using raw transport: {e}")
+            try:
+                from urllib.parse import urlencode
+                query_params = {'format': 'json', 'h': ','.join(headers), 'bytes': 'b'}
+                query_string = urlencode(query_params)
+                
+                response = self.es_client.transport.perform_request(
+                    'GET',
+                    f'/_cat/indices/{index_pattern}?{query_string}'
+                )
+                
+                if isinstance(response, dict) and 'body' in response:
+                    body = response['body']
+                elif hasattr(response, 'body'):
+                    body = response.body
+                else:
+                    body = response
+                
+                for item in body:
+                    try:
+                        metrics = IndexMetrics.from_cat_indices(item)
+                        metrics_list.append(metrics)
+                    except Exception as parse_error:
+                        self.logger.warning(
+                            f"Failed to parse metrics for index {item.get('index', 'unknown')}: {parse_error}"
+                        )
+                        continue
+                        
+            except Exception as transport_error:
+                self.logger.error(f"Failed to collect batch metrics via raw transport: {transport_error}")
+                metrics_list = self._collect_individual_metrics(indices)
+                
         except Exception as e:
             self.logger.error(f"Failed to collect batch metrics: {e}")
             # Try individual collection as fallback
@@ -125,7 +161,7 @@ class IndexStatsCollector(BaseCollector):
     def _collect_individual_metrics(self, indices: List[str]) -> List[IndexMetrics]:
         """
         Fallback method to collect metrics for indices one by one.
-        Used when batch collection fails.
+        Used when batch collection fails. Compatible with AWS OpenSearch.
         
         Args:
             indices: List of index names
@@ -156,6 +192,35 @@ class IndexStatsCollector(BaseCollector):
                 if response:
                     metrics = IndexMetrics.from_cat_indices(response[0])
                     metrics_list.append(metrics)
+                    
+            except UnsupportedProductError:
+                # AWS OpenSearch - use raw transport
+                try:
+                    from urllib.parse import urlencode
+                    query_params = {'format': 'json', 'h': ','.join(headers), 'bytes': 'b'}
+                    query_string = urlencode(query_params)
+                    
+                    response = self.es_client.transport.perform_request(
+                        'GET',
+                        f'/_cat/indices/{index_name}?{query_string}'
+                    )
+                    
+                    if isinstance(response, dict) and 'body' in response:
+                        body = response['body']
+                    elif hasattr(response, 'body'):
+                        body = response.body
+                    else:
+                        body = response
+                    
+                    if body:
+                        metrics = IndexMetrics.from_cat_indices(body[0])
+                        metrics_list.append(metrics)
+                        
+                except Exception as transport_error:
+                    self.logger.warning(
+                        f"Failed to collect metrics for index {index_name} via raw transport: {transport_error}"
+                    )
+                    continue
                     
             except Exception as e:
                 self.logger.warning(f"Failed to collect metrics for index {index_name}: {e}")

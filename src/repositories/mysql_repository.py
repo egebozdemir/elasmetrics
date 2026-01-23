@@ -19,7 +19,6 @@ class MySQLRepository:
     Uses connection pooling for efficient database access.
     """
     
-    # SQL queries as class constants
     CREATE_TABLE_SQL = """
     CREATE TABLE IF NOT EXISTS index_metrics (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -159,11 +158,9 @@ class MySQLRepository:
         try:
             with self._get_connection() as conn:
                 with conn.cursor() as cursor:
-                    # Create main table
                     cursor.execute(self.CREATE_TABLE_SQL)
                     self.logger.info("Table 'index_metrics' is ready")
                     
-                    # Create view for latest metrics (fast current-state queries)
                     cursor.execute(self.CREATE_LATEST_VIEW_SQL)
                     self.logger.info("View 'index_metrics_latest' is ready")
                     
@@ -219,10 +216,7 @@ class MySQLRepository:
         try:
             with self._get_connection() as conn:
                 with conn.cursor() as cursor:
-                    # Prepare batch data
                     batch_data = [metric.to_db_dict() for metric in metrics]
-                    
-                    # Execute batch insert
                     rows_affected = cursor.executemany(self.INSERT_METRIC_SQL, batch_data)
                     conn.commit()
                     

@@ -31,17 +31,13 @@ class EnvLoader:
             return
         
         if env_file:
-            # Use explicitly provided env file
             env_file_path = Path(env_file)
         else:
-            # Determine env file based on ENV variable
             env_value = env or os.getenv('ENV')
-            
             base_dir = Path(__file__).parent.parent.parent
             
             if env_value:
                 env_file_path = base_dir / f".env.{env_value.lower()}"
-                # Fallback to .env if environment-specific file doesn't exist
                 if not env_file_path.exists():
                     env_file_path = base_dir / ".env"
             else:
@@ -51,9 +47,7 @@ class EnvLoader:
             load_dotenv(env_file_path, override=True)
             cls._loaded = True
         elif env_file:
-            # If explicitly specified file doesn't exist, raise error
             raise FileNotFoundError(f"Environment file {env_file_path} not found.")
-        # If no explicit file and default .env doesn't exist, just continue (optional .env)
     
     @classmethod
     def reset(cls):
