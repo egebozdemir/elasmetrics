@@ -379,10 +379,12 @@ metrics:
 ## 📦 Requirements
 
 - Python 3.8+
-- Elasticsearch 7.x or 8.x
+- Elasticsearch 7.x or 8.x (including AWS Elasticsearch/OpenSearch)
 - MySQL 5.7+ or MariaDB 10.3+
 - (Optional) AWS CLI configured for Parameter Store
 - (Optional) Docker for local testing
+
+**✅ AWS Elasticsearch/OpenSearch Compatible** - Works seamlessly with AWS managed Elasticsearch and OpenSearch Service
 
 ---
 

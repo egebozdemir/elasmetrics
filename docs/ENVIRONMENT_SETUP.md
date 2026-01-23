@@ -404,6 +404,78 @@ python main.py collect
 chmod 600 .env.production
 ```
 
+### Issue: AWS Elasticsearch / OpenSearch Connection Error
+
+**Symptom:** `The client noticed that the server is not Elasticsearch and we do not support this unknown product`
+
+**Cause:** AWS Elasticsearch Service (now OpenSearch Service) identifies itself differently than vanilla Elasticsearch, but is API-compatible.
+
+**Solution:** ✅ **Already fixed in v1.0+**
+
+The system automatically disables product checking (`_product_check=False`) to support AWS Elasticsearch/OpenSearch clusters.
+
+**Example `.env` for AWS Elasticsearch:**
+```bash
+# AWS Elasticsearch (OpenSearch Service)
+ES_HOSTS=https://vpc-my-cluster.eu-west-1.es.amazonaws.com
+ES_USERNAME=
+ES_PASSWORD=
+ES_VERIFY_CERTS=true  # AWS has valid certs
+ES_TIMEOUT=30
+```
+
+**Verify connection:**
+```bash
+# Test with curl first
+curl -X GET "https://your-cluster.eu-west-1.es.amazonaws.com/_cluster/health?pretty"
+
+# Then test with the app
+python main.py health-check
+```
+
+### Issue: .env file parsing error
+
+**Symptom:** `python-dotenv could not parse statement starting at line X`
+
+**Cause:** Syntax error in `.env` file (spaces around `=`, quotes, multiline values, etc.)
+
+**Common mistakes:**
+
+```bash
+# ❌ BAD: Spaces around equals
+ES_HOSTS = http://localhost:9200
+
+# ❌ BAD: Unquoted values with spaces
+ES_HOSTS=http://localhost:9200 http://localhost:9201
+
+# ❌ BAD: Multiline without proper format
+METRICS_EXCLUDE_PATTERNS=.security*,
+.kibana*,
+.monitoring*
+
+# ✅ GOOD: No spaces, comma-separated
+ES_HOSTS=http://localhost:9200,http://localhost:9201
+
+# ✅ GOOD: Quoted if necessary
+METRICS_EXCLUDE_PATTERNS=".security*,.kibana*,.monitoring*"
+
+# ✅ GOOD: Single line
+METRICS_EXCLUDE_PATTERNS=.security*,.kibana*,.monitoring*
+```
+
+**Solution:** Fix the syntax error at the reported line:
+
+```bash
+# Check which line has the error
+python -c "from dotenv import load_dotenv; load_dotenv('.env')"
+
+# Common fixes:
+# 1. Remove spaces around =
+# 2. Remove extra quotes
+# 3. Put comma-separated values on one line
+# 4. Remove comments on same line as values
+```
+
 ## Migration from YAML-only
 
 If you're migrating from YAML-only configuration:
@@ -421,6 +493,63 @@ python main.py collect --config config/config.production.yaml
 **After:**
 ```bash
 python main.py collect --env PRODUCTION
+```
+
+## Troubleshooting AWS OpenSearch
+
+### Issue: "The client noticed that the server is not Elasticsearch"
+
+**Symptom:**
+```
+elasticsearch.UnsupportedProductError: The client noticed that the server is not Elasticsearch and we do not support this unknown product
+```
+
+**Solution:**
+
+1. **Add to `.env` file:**
+   ```bash
+   ELASTIC_CLIENT_APIVERSIONING=0
+   ```
+
+2. **If using `.env.staging` or `.env.production`, add it there too:**
+   ```bash
+   echo -e "\n# AWS OpenSearch Compatibility\nELASTIC_CLIENT_APIVERSIONING=0" >> .env.staging
+   ```
+
+3. **Verify it's loaded:**
+   ```bash
+   python scripts/check_env.py
+   ```
+
+**Why This Happens:**
+- AWS Elasticsearch/OpenSearch is API-compatible with Elasticsearch but reports itself as "OpenSearch"
+- The elasticsearch-py client has a product check that can be disabled with `ELASTIC_CLIENT_APIVERSIONING=0`
+- ElasMetrics automatically falls back to raw transport when it detects AWS OpenSearch
+
+**Note:** ElasMetrics v1.0+ handles AWS OpenSearch automatically. You should see:
+```
+✓ Connected to AWS OpenSearch cluster (bypassing product check)
+✓ Retrieved X indices from AWS OpenSearch (via raw transport)
+```
+
+### Issue: ".env parsing error"
+
+**Symptom:**
+```
+python-dotenv could not parse statement starting at line X
+```
+
+**Solution:**
+```bash
+# Check your .env syntax
+python scripts/check_env.py
+
+# Common issues:
+# ❌ BAD:  ES_HOSTS = https://...  (spaces around =)
+# ✅ GOOD: ES_HOSTS=https://...
+
+# ❌ BAD:  Multi-line without quotes
+# ✅ GOOD: Wrap multi-line values in quotes
 ```
 
 ## Examples

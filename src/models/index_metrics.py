@@ -54,12 +54,9 @@ class IndexMetrics:
         """
         data = self.to_dict()
         
-        # Convert datetime to ISO format string
         if isinstance(data.get('timestamp'), datetime):
             data['timestamp'] = data['timestamp'].isoformat()
         
-        # Keep all fields (including None) for consistent SQL inserts
-        # Database will handle NULL values properly
         return data
     
     @classmethod
@@ -75,14 +72,9 @@ class IndexMetrics:
         Returns:
             IndexMetrics instance
         """
-        # Extract primaries stats (per-shard stats)
         primaries = stats.get('primaries', {})
         total = stats.get('total', {})
-        
-        # Extract document stats
         docs = primaries.get('docs', {})
-        
-        # Extract store stats
         store = primaries.get('store', {})
         total_store = total.get('store', {})
         
@@ -108,27 +100,20 @@ class IndexMetrics:
         Returns:
             IndexMetrics instance
         """
-        # When using bytes=b parameter, sizes are returned as integers directly
         store_size_raw = cat_data.get('store.size')
         pri_store_size_raw = cat_data.get('pri.store.size')
         
-        # Handle both string (with units) and integer/numeric (bytes) formats
-        # Elasticsearch may return int or string representation of int
         if store_size_raw is not None and (isinstance(store_size_raw, (int, float)) or str(store_size_raw).isdigit()):
-            # Elasticsearch returned bytes as number
             store_size_bytes = int(store_size_raw) if store_size_raw else None
             store_size_human = cls._format_bytes(store_size_bytes)
         else:
-            # Elasticsearch returned string like "1.5mb"
             store_size_bytes = cls._parse_size_to_bytes(store_size_raw)
             store_size_human = store_size_raw
         
         if pri_store_size_raw is not None and (isinstance(pri_store_size_raw, (int, float)) or str(pri_store_size_raw).isdigit()):
-            # Elasticsearch returned bytes as number
             pri_store_size_bytes = int(pri_store_size_raw) if pri_store_size_raw else None
             pri_store_size_human = cls._format_bytes(pri_store_size_bytes)
         else:
-            # Elasticsearch returned string like "1.5mb"
             pri_store_size_bytes = cls._parse_size_to_bytes(pri_store_size_raw)
             pri_store_size_human = pri_store_size_raw
         
@@ -195,7 +180,6 @@ class IndexMetrics:
         
         size_str = size_str.strip().lower()
         
-        # Extract number and unit
         import re
         match = re.match(r'([\d.]+)\s*([a-z]+)', size_str)
         if not match:
@@ -204,7 +188,6 @@ class IndexMetrics:
         value = float(match.group(1))
         unit = match.group(2)
         
-        # Convert to bytes
         multipliers = {
             'b': 1,
             'kb': 1024,

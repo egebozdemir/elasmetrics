@@ -2,10 +2,15 @@
 """
 Main entry point for Elasticsearch Metrics Collection System.
 """
+# CRITICAL: Load .env FIRST, before any elasticsearch imports
+# This allows setting ELASTIC_CLIENT_APIVERSIONING for AWS OpenSearch compatibility
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()  # Load .env file immediately
+
 import sys
 import logging
 import argparse
-from pathlib import Path
 from datetime import datetime
 
 # Add src to Python path

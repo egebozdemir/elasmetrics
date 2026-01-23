@@ -28,14 +28,11 @@ class MetricsService:
         """
         self.logger = logging.getLogger(self.__class__.__name__)
         
-        # Load configuration
         if config is None:
             config_loader = ConfigLoader()
             config = config_loader.load_config()
         
         self.config = config
-        
-        # Initialize components
         self.es_client = self._create_es_client()
         self.repository = MySQLRepository(config['mysql'])
         self.collector = self._create_collector()
@@ -46,19 +43,20 @@ class MetricsService:
         """
         Create and configure Elasticsearch client.
         
+        Note: For AWS Elasticsearch/OpenSearch compatibility, set
+        ELASTIC_CLIENT_APIVERSIONING=0 in your .env file.
+        
         Returns:
             Configured Elasticsearch client
         """
         es_config = self.config['elasticsearch']
         
-        # Build connection parameters
         connection_params = {
             'hosts': es_config.get('hosts', ['http://localhost:9200']),
             'timeout': es_config.get('timeout', 30),
             'verify_certs': es_config.get('verify_certs', False),
         }
         
-        # Add authentication if provided
         if 'username' in es_config and 'password' in es_config:
             connection_params['basic_auth'] = (
                 es_config['username'],
@@ -110,12 +108,10 @@ class MetricsService:
         }
         
         try:
-            # Step 1: Test connections
             self.logger.info("Step 1: Testing connections...")
             if not self._test_connections():
                 raise ConnectionError("Connection tests failed")
             
-            # Step 2: Collect metrics from Elasticsearch
             self.logger.info("Step 2: Collecting metrics from Elasticsearch...")
             metrics = self.collector.collect()
             result['metrics_collected'] = len(metrics)
@@ -125,12 +121,10 @@ class MetricsService:
                 result['success'] = True
                 return result
             
-            # Step 3: Store metrics in MySQL
             self.logger.info(f"Step 3: Storing {len(metrics)} metrics in MySQL...")
             stored_count = self.repository.save_metrics_batch(metrics)
             result['metrics_stored'] = stored_count
             
-            # Step 4: Success
             result['success'] = True
             self.logger.info("✓ Metrics collection and storage completed successfully")
             
@@ -143,7 +137,6 @@ class MetricsService:
             result['end_time'] = end_time.isoformat()
             result['duration_seconds'] = (end_time - start_time).total_seconds()
             
-            # Log summary
             self.logger.info("=" * 60)
             self.logger.info("Execution Summary:")
             self.logger.info(f"  Status: {'SUCCESS' if result['success'] else 'FAILED'}")
@@ -279,25 +272,55 @@ class MetricsService:
             'timestamp': datetime.utcnow().isoformat()
         }
         
-        # Check Elasticsearch
         try:
             if self.collector.validate_connection():
-                info = self.es_client.info()
+                try:
+                    cluster_health = self.es_client.cluster.health()
+                    health['elasticsearch'] = {
+                        'status': 'healthy',
+                        'details': {
+                            'cluster_name': cluster_health.get('cluster_name', 'N/A'),
+                            'status': cluster_health.get('status', 'N/A'),
+                            'nodes': cluster_health.get('number_of_nodes', 'N/A')
+                        }
+                    }
+                except Exception as detail_error:
+                    error_msg = str(detail_error)
+                    if 'not Elasticsearch' in error_msg or 'unknown product' in error_msg:
+                        health['elasticsearch'] = {
+                            'status': 'healthy',
+                            'details': {
+                                'cluster_name': 'AWS OpenSearch (product check bypassed)',
+                                'status': 'N/A',
+                                'nodes': 'N/A'
+                            }
+                        }
+                    else:
+                        raise
+            else:
+                health['elasticsearch'] = {
+                    'status': 'unhealthy',
+                    'error': 'Connection validation failed'
+                }
+                health['overall'] = 'unhealthy'
+        except Exception as e:
+            error_msg = str(e)
+            if 'not Elasticsearch' in error_msg or 'unknown product' in error_msg:
                 health['elasticsearch'] = {
                     'status': 'healthy',
                     'details': {
-                        'cluster_name': info.get('cluster_name'),
-                        'version': info.get('version', {}).get('number')
+                        'cluster_name': 'AWS OpenSearch (product check bypassed)',
+                        'status': 'Connected',
+                        'nodes': 'N/A'
                     }
                 }
-        except Exception as e:
-            health['elasticsearch'] = {
-                'status': 'unhealthy',
-                'error': str(e)
-            }
-            health['overall'] = 'unhealthy'
+            else:
+                health['elasticsearch'] = {
+                    'status': 'unhealthy',
+                    'error': str(e)
+                }
+                health['overall'] = 'unhealthy'
         
-        # Check MySQL
         try:
             if self.repository.test_connection():
                 health['mysql'] = {

@@ -51,24 +51,17 @@ class ConfigLoader:
         if self._config is not None:
             return self._config
         
-        # Load environment variables first
         EnvLoader.load_environment_config(env)
         
-        # Check for CONFIG_JSON from environment (Airflow integration)
         if config_json is None:
             config_json = os.getenv('CONFIG_JSON')
         
         if config_json:
-            # Parse JSON config (Airflow mode)
             self._config = self._load_from_json(config_json)
         else:
-            # Load from YAML file (traditional mode)
             self._config = self._load_from_yaml(config_path)
         
-        # Validate configuration
         self._validate_config()
-        
-        # Override with environment variables if present
         self._apply_env_overrides()
         
         return self._config
@@ -126,11 +119,9 @@ class ConfigLoader:
             if section not in self._config:
                 raise ValueError(f"Missing required configuration section: {section}")
         
-        # Validate Elasticsearch config
         if 'hosts' not in self._config['elasticsearch']:
             raise ValueError("Elasticsearch hosts must be specified")
         
-        # Validate MySQL config
         mysql_required = ['host', 'database', 'user', 'password']
         for field in mysql_required:
             if field not in self._config['mysql']:
@@ -141,14 +132,12 @@ class ConfigLoader:
         Apply environment variable overrides to configuration.
         Supports AWS Parameter Store integration for secure credential management.
         """
-        # Check if we should use Parameter Store
         use_parameter_store = os.getenv('USE_PARAMETER_STORE', 'false').lower() == 'true'
         local_dev_mode = os.getenv('LOCAL_DEV_MODE', 'false').lower() == 'true'
         
         if use_parameter_store and not local_dev_mode:
             self._load_from_parameter_store()
         
-        # Elasticsearch overrides
         if os.getenv('ES_HOSTS'):
             self._config['elasticsearch']['hosts'] = os.getenv('ES_HOSTS').split(',')
         if os.getenv('ES_USERNAME'):
@@ -162,7 +151,6 @@ class ConfigLoader:
         if os.getenv('ES_VERIFY_CERTS'):
             self._config['elasticsearch']['verify_certs'] = os.getenv('ES_VERIFY_CERTS').lower() == 'true'
         
-        # MySQL overrides
         if os.getenv('MYSQL_HOST'):
             self._config['mysql']['host'] = os.getenv('MYSQL_HOST')
         if os.getenv('MYSQL_PORT'):
@@ -180,7 +168,6 @@ class ConfigLoader:
         if os.getenv('MYSQL_POOL_RECYCLE'):
             self._config['mysql']['pool_recycle'] = int(os.getenv('MYSQL_POOL_RECYCLE'))
         
-        # Metrics overrides
         if os.getenv('METRICS_CONFIG'):
             try:
                 metrics_override = json.loads(os.getenv('METRICS_CONFIG'))
@@ -193,7 +180,6 @@ class ConfigLoader:
         if os.getenv('METRICS_EXCLUDE_PATTERNS'):
             self._config['metrics']['exclude_patterns'] = os.getenv('METRICS_EXCLUDE_PATTERNS').split(',')
         
-        # Scheduling overrides
         if 'scheduling' not in self._config:
             self._config['scheduling'] = {}
         
@@ -204,7 +190,6 @@ class ConfigLoader:
         if os.getenv('SCHEDULING_TIMEZONE'):
             self._config['scheduling']['timezone'] = os.getenv('SCHEDULING_TIMEZONE')
         
-        # Logging overrides
         if 'logging' not in self._config:
             self._config['logging'] = {}
         
@@ -268,7 +253,6 @@ class ConfigLoader:
             
             self._logger.info(f"Loading configuration from Parameter Store (ENV={env})")
             
-            # Load Elasticsearch credentials
             try:
                 es_password = ParameterStoreService.get_parameter(
                     f"{param_prefix}/{env}/ELASTICSEARCH/PASSWORD"
@@ -300,7 +284,6 @@ class ConfigLoader:
             except RuntimeError as e:
                 self._logger.warning(f"Could not load ES API key from Parameter Store: {e}")
             
-            # Load MySQL credentials
             try:
                 mysql_password = ParameterStoreService.get_parameter(
                     f"{param_prefix}/{env}/MYSQL/PASSWORD"
