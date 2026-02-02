@@ -1,0 +1,241 @@
+# =============================================================================
+# ElasMetrics Configuration - Multi-Cluster with Aggregation Queries
+# =============================================================================
+# This example shows how to configure:
+# - Multiple ES/OpenSearch data sources (direct VPC + DataHub proxy)
+# - Custom aggregation queries (_count and _search with aggs)
+# =============================================================================
+
+# =============================================================================
+# DATA SOURCES - Define your ES/OpenSearch clusters
+# =============================================================================
+data_sources:
+  # Main cluster - direct VPC access
+  main_cluster:
+    hosts:
+      - "https://vpc-your-domain.us-east-1.es.amazonaws.com:443"
+    # Authentication options:
+    # 1. Environment variables: ${VAR_NAME}
+    # 2. AWS SSM Parameter Store: ${ssm:/path/to/param}
+    username: "${ES_MAIN_USERNAME}"
+    password: "${ES_MAIN_PASSWORD}"
+    # Or use SSM parameters directly:
+    # password: "${ssm:/PREDICTIVE/PRODUCTION/ELASTICSEARCH/PASSWORD}"
+    timeout: 30
+    verify_certs: true
+
+  # Enterprise cluster via DataHub proxy (ES-compatible API)
+  # URL pattern: https://{host}/v1/proxy/{index}/_search
+  enterprise_datahub:
+    hosts:
+      - "https://datahub-api.yourcompany.com"
+    username: "${DATAHUB_USERNAME}"
+    password: "${DATAHUB_PASSWORD}"
+    timeout: 60
+    verify_certs: true
+    # Path prefix for proxy endpoints (transforms /{index}/_search to /v1/proxy/{index}/_search)
+    path_prefix: "/v1/proxy"
+    # Optional: custom headers for proxy authentication
+    # headers:
+    #   X-API-Key: "${DATAHUB_API_KEY}"
+    #   X-Tenant-ID: "enterprise"
+
+# =============================================================================
+# INDEX METRICS - Which sources to collect index stats from
+# =============================================================================
+index_metrics:
+  # Collect index stats from these data sources
+  sources:
+    - main_cluster
+    - enterprise_datahub
+
+  # Patterns for filtering indices
+  include_patterns:
+    - "*"
+  exclude_patterns:
+    - ".kibana*"
+    - ".security*"
+    - ".opendistro*"
+    - ".tasks"
+
+  batch_size: 100
+
+# =============================================================================
+# AGGREGATION QUERIES - Your custom metrics
+# =============================================================================
+aggregation_queries:
+  # -------------------------------------------------------------------------
+  # Example 1: Stock item count (using _count API)
+  # -------------------------------------------------------------------------
+  - name: stock_item_count
+    description: "Count of in-stock items"
+    data_source: main_cluster
+    index_pattern: "10005995"
+    query_type: count
+
+    query:
+      match:
+        in_stock_bool: "true"
+
+    result_mapping:
+      type: single_value
+      value_path: "count"
+
+  # -------------------------------------------------------------------------
+  # Example 2: Stock items with analytics (_count with bool query)
+  # -------------------------------------------------------------------------
+  - name: stock_recommendable_count
+    description: "Count of in-stock items with analytics field"
+    data_source: main_cluster
+    index_pattern: "10005995"
+    query_type: count
+
+    query:
+      bool:
+        must:
+          - match:
+              in_stock_bool: true
+          - exists:
+              field: analytics
+
+    result_mapping:
+      type: single_value
+      value_path: "count"
+
+  # -------------------------------------------------------------------------
+  # Example 3: Items per locale (terms aggregation)
+  # -------------------------------------------------------------------------
+  - name: items_per_locale
+    description: "Item count grouped by locale"
+    data_source: main_cluster
+    index_pattern: "10000265"
+    query_type: search
+
+    query:
+      size: 0
+      aggs:
+        total_values:
+          terms:
+            field: locale
+            size: 50
+
+    result_mapping:
+      type: terms_buckets
+      aggregation_path: "total_values"
+      dimension_field: "locale"
+      value_field: "doc_count"
+
+  # -------------------------------------------------------------------------
+  # Example 4: Enterprise cluster query via DataHub
+  # -------------------------------------------------------------------------
+  - name: enterprise_product_count
+    description: "Total product count from enterprise cluster"
+    data_source: enterprise_datahub
+    index_pattern: "products-*"
+    query_type: count
+
+    query:
+      match_all: {}
+
+    result_mapping:
+      type: single_value
+      value_path: "count"
+
+  # -------------------------------------------------------------------------
+  # Example 5: Average response time with percentiles
+  # -------------------------------------------------------------------------
+  - name: api_response_time
+    description: "API response time metrics"
+    data_source: main_cluster
+    index_pattern: "api-logs-*"
+    query_type: search
+
+    query:
+      size: 0
+      query:
+        range:
+          "@timestamp":
+            gte: "now-1d"
+      aggs:
+        avg_latency:
+          avg:
+            field: response_time_ms
+        percentiles:
+          percentiles:
+            field: response_time_ms
+            percents: [50, 90, 95, 99]
+
+    result_mapping:
+      type: single_value
+      metrics:
+        - name: "avg_ms"
+          path: "avg_latency.value"
+        - name: "p50_ms"
+          path: "percentiles.values.50\\.0"
+        - name: "p99_ms"
+          path: "percentiles.values.99\\.0"
+
+  # -------------------------------------------------------------------------
+  # Example 6: Error count by status code
+  # -------------------------------------------------------------------------
+  - name: error_count_by_status
+    description: "HTTP error counts grouped by status code"
+    data_source: main_cluster
+    index_pattern: "logs-*"
+    query_type: search
+
+    query:
+      size: 0
+      query:
+        bool:
+          filter:
+            - range:
+                "@timestamp":
+                  gte: "now-1d"
+            - range:
+                status:
+                  gte: 400
+      aggs:
+        by_status:
+          terms:
+            field: status
+            size: 20
+
+    result_mapping:
+      type: terms_buckets
+      aggregation_path: "by_status"
+      dimension_field: "status_code"
+      value_field: "doc_count"
+
+# =============================================================================
+# MYSQL - AWS RDS compatible
+# =============================================================================
+mysql:
+  # Supports both env vars ${VAR} and SSM ${ssm:/path}
+  host: "${MYSQL_HOST}"
+  # Or SSM: host: "${ssm:/PREDICTIVE/PRODUCTION/SR/MYSQL/HOST}"
+  port: 3306
+  database: "elasticsearch_metrics"
+  user: "${MYSQL_USER}"
+  password: "${MYSQL_PASSWORD}"
+  # Or SSM: password: "${ssm:/PREDICTIVE/PRODUCTION/SR_API/PASSWORD}"
+  charset: "utf8mb4"
+  pool_size: 5
+  pool_recycle: 3600
+
+# =============================================================================
+# SCHEDULING
+# =============================================================================
+scheduling:
+  enabled: false
+  cron: "0 2 * * *"
+  timezone: "UTC"
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/elasmetrics.log"
+  console: true

@@ -8,11 +8,12 @@ ElasMetrics collects index metrics from Elasticsearch clusters and stores them i
 
 **Key Features:**
 - ✅ **Universal Metrics** - Collect ANY Elasticsearch metric without code changes
-- ✅ **Type-Safe** - Built-in validation (integer, float, string, boolean, JSON)
+- ✅ **Multi-Cluster Support** - Connect to multiple ES/OpenSearch clusters (VPC + proxy endpoints)
+- ✅ **Custom Aggregation Queries** - Run `_count` and `_search` aggregations, store results in MySQL
 - ✅ **Multi-Environment** - Staging, production configs with AWS Parameter Store
 - ✅ **Airflow Ready** - Native DAG integration
 - ✅ **Time-Series + Current State** - Historical trends AND fast current state queries
-- ✅ **17+ Pre-Registered Metrics** - Common metrics ready to use
+- ✅ **AWS OpenSearch Compatible** - Works with AWS Elasticsearch and OpenSearch Service
 
 ---
 
@@ -55,8 +56,17 @@ MYSQL_PASSWORD=changeme
 # Health check
 python main.py health-check
 
-# Collect metrics
+# Collect index metrics
 python main.py collect
+
+# Collect aggregation metrics (custom queries)
+python main.py collect-aggregations
+
+# List configured data sources
+python main.py list-sources
+
+# List configured aggregation queries
+python main.py list-queries
 
 # Cleanup old data (keep 90 days)
 python main.py cleanup --days 90
@@ -66,38 +76,60 @@ python main.py cleanup --days 90
 
 ---
 
-## 📊 Universal Metrics System
+## 📊 Multi-Cluster & Aggregation Queries
 
-**Add ANY metric without code changes:**
+**Connect to multiple ES/OpenSearch clusters:**
 
 ```yaml
 # config/config.yaml
-metrics:
-  collect:
-    # Document & storage
-    - docs.count
-    - store.size_in_bytes
-    
-    # Performance
-    - indexing.index_total
-    - search.query_total
-    
-    # Cache & segments
-    - query_cache.memory_size_in_bytes
-    - segments.count
-    
-    # Custom plugin metrics
-    - my.custom.plugin.metric
-  
-  # Define custom metrics
-  custom_definitions:
-    - name: my.custom.plugin.metric
-      es_path: primaries.my_plugin.value
-      type: integer
-      description: Custom metric from ES plugin
+data_sources:
+  main_cluster:
+    hosts:
+      - "https://vpc-your-domain.us-east-1.es.amazonaws.com:443"
+    username: "${ES_MAIN_USERNAME}"
+    password: "${ES_MAIN_PASSWORD}"
+
+  enterprise_datahub:
+    hosts:
+      - "https://datahub-api.yourcompany.com"
+    username: "${DATAHUB_USERNAME}"
+    password: "${DATAHUB_PASSWORD}"
 ```
 
-**17+ pre-registered metrics available. See [docs/METRICS_GUIDE.md](docs/METRICS_GUIDE.md)**
+**Run custom aggregation queries:**
+
+```yaml
+aggregation_queries:
+  - name: stock_item_count
+    data_source: main_cluster
+    index_pattern: "products-*"
+    query_type: count
+    query:
+      match:
+        in_stock: true
+    result_mapping:
+      type: single_value
+      value_path: "count"
+
+  - name: items_per_locale
+    data_source: main_cluster
+    index_pattern: "catalog-*"
+    query_type: search
+    query:
+      size: 0
+      aggs:
+        by_locale:
+          terms:
+            field: locale
+            size: 50
+    result_mapping:
+      type: terms_buckets
+      aggregation_path: "by_locale"
+      dimension_field: "locale"
+      value_field: "doc_count"
+```
+
+**See [config/config.multi-cluster.example.yaml](config/config.multi-cluster.example.yaml) for complete examples.**
 
 ---
 
@@ -181,11 +213,11 @@ task = PythonOperator(task_id='collect', python_callable=collect_metrics, dag=da
 
 ## 📈 Querying Data
 
-### Current State (Fast)
+### Index Metrics - Current State
 
 ```sql
 -- Get latest metrics for all indices (uses optimized VIEW)
-SELECT 
+SELECT
     index_name,
     docs_count,
     store_size_human,
@@ -195,19 +227,30 @@ FROM index_metrics_latest
 ORDER BY docs_count DESC;
 ```
 
-### Historical Analysis (Trends)
+### Aggregation Metrics - Custom Queries
 
 ```sql
--- Track index growth over last 7 days
-SELECT 
+-- Get latest aggregation metrics
+SELECT
+    metric_name,
+    data_source,
+    value_numeric,
+    dimension_1_name,
+    dimension_1_value,
+    timestamp
+FROM aggregation_metrics_latest
+ORDER BY metric_name;
+
+-- Trend analysis for custom metrics
+SELECT
     DATE(timestamp) as day,
-    index_name,
-    AVG(docs_count) as avg_docs,
-    AVG(store_size_bytes/1024/1024/1024) as avg_size_gb
-FROM index_metrics
-WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-GROUP BY DATE(timestamp), index_name
-ORDER BY day, index_name;
+    metric_name,
+    AVG(value_numeric) as avg_value
+FROM aggregation_metrics
+WHERE metric_name = 'stock_item_count'
+  AND timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+GROUP BY DATE(timestamp), metric_name
+ORDER BY day;
 ```
 
 **50+ query examples in [docs/QUERY_GUIDE.md](docs/QUERY_GUIDE.md)**
@@ -239,7 +282,7 @@ python main.py collect
 
 ## 📊 Database Schema
 
-### Time-Series Table (Historical Data)
+### Index Metrics Table
 
 ```sql
 CREATE TABLE index_metrics (
@@ -254,25 +297,25 @@ CREATE TABLE index_metrics (
 );
 ```
 
-### Current State View (Fast Queries)
+### Aggregation Metrics Table (Custom Queries)
 
 ```sql
--- Automatically created, always shows latest metrics
-CREATE VIEW index_metrics_latest AS
-SELECT t1.*
-FROM index_metrics t1
-JOIN (
-    SELECT index_name, MAX(timestamp) AS max_timestamp
-    FROM index_metrics
-    GROUP BY index_name
-) t2 ON t1.index_name = t2.index_name 
-    AND t1.timestamp = t2.max_timestamp;
+CREATE TABLE aggregation_metrics (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    metric_name VARCHAR(255) NOT NULL,
+    data_source VARCHAR(100) NOT NULL,
+    index_pattern VARCHAR(255),
+    timestamp DATETIME NOT NULL,
+    value_numeric DOUBLE,
+    dimension_1_name VARCHAR(100),  -- For grouping (e.g., 'locale')
+    dimension_1_value VARCHAR(255), -- Dimension value (e.g., 'en_US')
+    -- ... up to 3 dimensions ...
+    INDEX idx_metric_name (metric_name),
+    INDEX idx_timestamp (timestamp)
+);
 ```
 
-**Benefits:**
-- ✅ Full historical data for trends
-- ✅ Fast current-state queries via VIEW
-- ✅ Both use cases supported
+**Both tables have `_latest` VIEWs for fast current-state queries.**
 
 ---
 
@@ -281,6 +324,7 @@ JOIN (
 | Document | Description |
 |----------|-------------|
 | **[QUICKSTART.md](docs/QUICKSTART.md)** | 5-minute setup guide |
+| **[SR_USAGE_INTEGRATION_PLAN.md](docs/SR_USAGE_INTEGRATION_PLAN.md)** | Multi-cluster & aggregation architecture |
 | **[METRICS_GUIDE.md](docs/METRICS_GUIDE.md)** | Complete metrics system guide |
 | **[QUERY_GUIDE.md](docs/QUERY_GUIDE.md)** | 50+ SQL query examples |
 | **[ENVIRONMENT_SETUP.md](docs/ENVIRONMENT_SETUP.md)** | Multi-environment configuration |
@@ -288,7 +332,6 @@ JOIN (
 | **[AIRFLOW_INTEGRATION.md](docs/AIRFLOW_INTEGRATION.md)** | Airflow DAG integration |
 | **[DOCKER_SETUP.md](docs/DOCKER_SETUP.md)** | Local testing with Docker |
 | **[QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)** | Command cheat sheet |
-| **[ES_QUERY_GUIDE.md](docs/ES_QUERY_GUIDE.md)** | Elasticsearch query examples |
 
 **See [docs/INDEX.md](docs/INDEX.md) for complete navigation.**
 
