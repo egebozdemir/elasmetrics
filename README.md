@@ -1,4 +1,4 @@
-# ElasMetrics - Elasticsearch Metrics Collector
+# Elas-Metrics | Elasticsearch Metrics Collector
 
 **Flexible, type-safe metrics collection from Elasticsearch to MySQL with Grafana visualization.**
 
